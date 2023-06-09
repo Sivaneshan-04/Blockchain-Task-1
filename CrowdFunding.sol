@@ -11,21 +11,24 @@ contract Crowdfunding{
 
     mapping (address =>uint256) private amountPaid;
     address payable[] private people;
-    uint256 private balance;
+    uint256 private totalBalance;
+
 
     constructor(uint256 Amount){
         admin = payable(msg.sender);
-        maxAmount = Amount;
+        maxAmount = Amount * 1 ether;
         deployTime = block.timestamp;
     }
 
-    function payAmount()public payable{
+    function payAmount() public payable{
         people.push(payable(msg.sender));
-        amountPaid[msg.sender]=msg.value - balance;
-        if(msg.value>maxAmount){
-            admin.transfer(msg.value);
+        amountPaid[msg.sender]+= msg.value;
+        totalBalance+= msg.value;
+
+        if(totalBalance >= maxAmount){
+            admin.transfer(totalBalance);
+            totalBalance=0;
         }
-        balance = msg.value;
     }
 
     function timeChecker() public payable{
@@ -38,6 +41,8 @@ contract Crowdfunding{
 
     function transferAmount() public payable{
         require(msg.sender == admin, "Only admin can transfer the amount");
-        admin.transfer(msg.value);
+        admin.transfer(totalBalance);
+        totalBalance=0;
+
     }
 }
